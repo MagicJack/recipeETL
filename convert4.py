@@ -1,6 +1,6 @@
 import os, json, re
 
-folder = "食材字典_Jack"
+folder = "食材字典_Edden"
 
 from typoSyn import *
 
@@ -11,8 +11,8 @@ outfile = f"{folder}-{infile[:-4]}.json"
 
 xf = open(f'../{outfile}', 'w', encoding='utf-8')
 
-typoDict  = typoSyn()
-grpSyn = groupSyn()
+typoDict = typoSyn()
+grpSyn  = groupSyn()
 grpDict = groupSyn().dict
 
 for filename in os.listdir(os.getcwd()):
@@ -25,16 +25,7 @@ for filename in os.listdir(os.getcwd()):
         for line in f:
             item = re.sub(r'^\d+(.*)\n', r'\1', line)
             item_norm = typoDict.replaceTypo(item)
-            for key, values in grpDict.items():
-                bFind, bAppend = grpSyn.lookup(item_norm, values)
-                if bFind:
-                    if bAppend or item_norm != item:
-                        grpDict[key].append(item)
-                    # if item_norm != item:
-                    #     print('1')
-                    break
-            else:
-                print('NG', item)
+            grpSyn.lookups(item, item_norm)
         # print(groupDict)
         print(f"Write to {folder}-{filename[:-4]}.json")
         for key, values in grpDict.items():
