@@ -54,7 +54,7 @@ def main(iFname, oFname):
     xf.close()
 
 if __name__ == "__main__":
-    iFname = sys.argv[1] if len(sys.argv) > 1 else "food_frequency_2.0-0.csv"
-    oFname = sys.argv[2] if len(sys.argv) > 2 else "food_frequency_2.0-0u.csv"
+    iFname = sys.argv[1] if len(sys.argv) > 1 else "food_frequency_2.0-0.txt"
+    oFname = sys.argv[2] if len(sys.argv) > 2 else "food_frequency_2.0-0u.txt"
     main(iFname, oFname)
     sys.exit(0)
