@@ -1,11 +1,15 @@
-import json, re
-from clnIngred import *
+import sys, json
+
+from clnIngred import ingCleaner
 
 folders = ["低脂","生酮","低醣","沙拉","高蛋白","健身","高纖"]
 
 count = 0
 foodList = []
 foodFreq = {}
+
+nClean = int(sys.argv[1])  if len(sys.argv) > 1 else 4
+bVerb  = bool(sys.argv[2]) if len(sys.argv) > 2 else False
 
 cleaner = ingCleaner()
 for i in folders:
@@ -14,11 +18,15 @@ for i in folders:
             data = json.loads(line)
             count += 1
             for food, qty in data['食譜'].items():  # 抓出"食譜"中的所有 key 和 值
-                nfood = cleaner.cleanIng(data['food_ID'], food, bVerb=False)
-                # if food == "鹽巴":
-                #     print('1')
-                if cleaner.checkSkip(data['food_ID'], nfood, qty, bVerb=False):
-                    continue
+                if nClean:
+                    nfood = cleaner.cleanIng(data['food_ID'], food, bVerb=False, nClean=4)
+                    # if food == "鹽巴":
+                    #     print('1')
+                    if cleaner.checkSkip(data['food_ID'], nfood, qty, bVerb=False):
+                        continue
+                else:
+                    nfood = food
+
                 if nfood in foodList:
                     foodFreq[nfood] += 1
                 else:
