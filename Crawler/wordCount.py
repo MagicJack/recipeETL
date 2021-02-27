@@ -11,28 +11,34 @@ foodFreq = {}
 nClean = int(sys.argv[1])  if len(sys.argv) > 1 else 4
 bVerb  = bool(sys.argv[2]) if len(sys.argv) > 2 else False
 
+def myProcess(line):
+    global foodList, foodFreq, count
+    # global cleaner
+
+    data = json.loads(line)
+    count += 1
+    for food, qty in data['食譜'].items():  # 抓出"食譜"中的所有 key 和 值
+        if nClean:
+            nfood = cleaner.cleanIng(data['food_ID'], food, bVerb=bVerb, nClean=nClean)
+        else:
+            nfood = food
+
+        if cleaner.checkSkip(data['food_ID'], nfood, qty, bVerb=bVerb):
+            pass
+
+        if nfood in foodList:
+            foodFreq[nfood] += 1
+        else:
+            foodFreq[nfood] = 1
+        foodList.append(nfood)
+        #print(food) # 所有食材
+
 cleaner = ingCleaner()
 for i in folders:
     with open(f'{i}/{i}.txt', 'r', encoding='utf-8') as f:
         for line in f:              # 使用迴圈方式一條一條抓
-            data = json.loads(line)
-            count += 1
-            for food, qty in data['食譜'].items():  # 抓出"食譜"中的所有 key 和 值
-                if nClean:
-                    nfood = cleaner.cleanIng(data['food_ID'], food, bVerb=False, nClean=4)
-                    # if food == "鹽巴":
-                    #     print('1')
-                    if cleaner.checkSkip(data['food_ID'], nfood, qty, bVerb=False):
-                        continue
-                else:
-                    nfood = food
+            myProcess(line)
 
-                if nfood in foodList:
-                    foodFreq[nfood] += 1
-                else:
-                    foodFreq[nfood] = 1
-                foodList.append(nfood)
-                #print(food) # 所有食材
 print(len(foodList)) # 總共多少食材
 print(count) # 總共幾個食譜
 skip = cleaner.getSkip()

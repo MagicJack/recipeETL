@@ -34,6 +34,8 @@ class ingCleaner():
         '麵粉': '面粉',
         '麵包': '面包',
         '龍鬚麵': '龍須面',
+        '義大利':'意大利',
+        '義式': '意式',
         }
 
     _ChiSym1 = [
@@ -48,6 +50,7 @@ class ingCleaner():
         '：', '：', '、', '、' ]
 
     # 可以直接刪掉名字的品牌
+    # 不會處理 空白
     _brandList = [
         'bodykey',
         'bragg',
@@ -56,7 +59,6 @@ class ingCleaner():
         'costco',
         'classico',
         'pb2',
-        'myprotein',
         'sweet relish',
         'granola',
         'zespri',
@@ -94,14 +96,13 @@ class ingCleaner():
 
         def _parseCnWord(line):
             line = "".join([_parseCnChar(ch) for ch in line]).strip()
-            for twW, cnW in self._cn2twWord.items():
-                if cnW in line:
-                    line = line.replace(cnW, twW)
-                    break
-            # Run twice in case there're 2 cnWords
-            for twW, cnW in self._cn2twWord.items():
-                if cnW in line:
-                    line = line.replace(cnW, twW)
+            # Loop until no more cnWords
+            while True:
+                for twW, cnW in self._cn2twWord.items():
+                    if cnW in line:
+                        line = line.replace(cnW, twW)
+                        # break
+                else:
                     break
             return line
 
@@ -111,47 +112,39 @@ class ingCleaner():
                 return self._ChiSym2[self._ChiSym1.index(ch)]
             return ch
 
-        def _replaceMore(idx, rstr, vstr):
-            # if vstr.find(word) > vstr.find('(') > 0 :
+        def _searchMore(idx, vstr):
             if idx > vstr.find('(') > 0:
-                return self._rgx9.sub(rstr, vstr)
+                mat = self._rgx9.search(vstr)
             else:
-                return self._rgx8.sub(rstr, vstr)
+                mat = self._rgx8.search(vstr[idx:])
+            if mat:
+                return mat.string
+            return ''
 
         def _transEngChi(vstr):
-            if '牛番茄or大番茄tomato' in vstr:
-                print('1')
-            s = 0
-            idx = 0
+            # if '牛番茄or大番茄tomato' in vstr:
+            #     print('1')
+            sidx = 0
+            midx = 0
             while True:
-                mat = self._rgx8.search(vstr[s:])
+                mat = self._rgx8.search(vstr[sidx:])
                 if not mat:     break
 
-                s += mat.end(0)
                 word = mat.group(1).strip().lower()
                 # if '牛番茄or大番茄tomato' in vstr:
                 #     print('1')
-                idx += mat.start(0)
                 if word in self._brandList:
-                    # return self._rgx9.sub('', vstr)
-                    return _replaceMore(idx, '', vstr)
+                    return vstr.replace(_searchMore(midx, vstr), '')
                 if word in self._transDict.Synonym:
                     trans = self._transDict.Synonym[word]
                     for tran in trans:
                         if tran in vstr:
-                            return _replaceMore(idx, '', vstr)
+                            return vstr.replace(_searchMore(midx, vstr), '')
                     else:
-                        # return self._rgx9.sub(trans[0], vstr)
-                        return _replaceMore(idx, trans[0], vstr)
-                # return vstr
-                # words = self._rgx8.split(vstr)
-                
-                # vstr = " ".join(words[:-1])
-                # print(f'{id:>8}, {vstr}')
+                        return vstr.replace(_searchMore(midx, vstr), trans[0])
+                sidx += mat.end(0)
+                midx = sidx + mat.start(0)
             return vstr
-        # if ' ' not in vstr:
-        #     # [1:-1] are used to avoid spaces @ Start and End
-        #     vstr = " ".join(re.split(self._rgx7, vstr)[1:-1])
 
 
         # Regex executer with log flag
@@ -200,14 +193,17 @@ class ingCleaner():
         nClean -= 1
         if nClean < 0:      return vstr
         vstr = _cleanIng0(vstr)
+
         # Part1: 處理有 () 的
         nClean -= 1
         if nClean < 0:      return vstr
         vstr = _cleanIng1(vstr)
+
         # Part2: 處理 奇奇怪怪 的
         nClean -= 1
         if nClean < 0:      return vstr
         vstr = _cleanIng2(vstr)
+
         # 錯別字合併 類似 食材字串
         nClean -= 1
         if nClean < 0:      return vstr

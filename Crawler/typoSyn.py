@@ -9,13 +9,14 @@ class transSyn():
         'havarti':      ['哈瓦蒂'],
         'havati':       ['哈瓦蒂'],
         'mascarpone':   ['馬斯卡彭', '馬斯卡朋'],
-        # 'mozzarella':   ['莫茲瑞拉', '馬芝瑞拉'],
-        # 'mozzarella ':  ['莫茲瑞拉'],
-        'ricotta':      ['瑞可達'],
+        'mozzarella':   ['莫札瑞拉'],
+        'ricotta':      ['瑞可達起司'],
         'tabasco':      ['塔巴斯科'],
         'Ankang':       ['AK安康'],
         'special k':        ['家樂氏'],
         'specialk':         ['家樂氏'],
+        'mozzarella cheese':['莫札瑞拉起司'],
+        'mozzarellachease': ['莫札瑞拉起司'],
         # 食材
         # 'cream cheese': ['奶油乳酪'],
         'almond meal':  ['杏仁'],
@@ -23,7 +24,7 @@ class transSyn():
         'almond flour': ['杏仁粉'],
         'apple cider vinegar':  ['蘋果醋'],
         'apple vinegar':        ['蘋果醋'],
-        'apple':    ['蘋果'],
+        'apple':        ['蘋果'],
         'arborio rice': ['阿柏里歐米'],
         'arborio':      ['阿柏里歐'],
         'avocado oil':  ['酪梨油'],
@@ -31,31 +32,30 @@ class transSyn():
         'avocados':     ['酪梨'],
         'baking powder':['泡打粉'],
         'baking soda':  ['蘇打粉'],
-        'balsamic vinegar': ['巴沙米可醋', '香油酢'],
         'bay leave':    ['月桂葉'],
         'beet':         ['甜菜'],
         'beetroot':     ['甜菜根'],
         'blue cheese':  ['藍莓芝士'],
         'broad beans':  ['蠶豆'],
-        'cannellini bean': ['白腰豆'],
+        'cannellini bean':  ['白腰豆'],
         'cherrytomato': ['櫻桃茄'],
         'cooking spray':['烹飪噴霧'],
-        'cottage':  ['茅屋芝士'],
-        'couscous': ['庫斯庫斯', '小米'],
-        'creamcheese': ['奶油乳酪', '忌廉起司', '忌廉芝士'],
-        'cumin':    ['孜然'],
+        'cheese':       ['起司', '起士'],
+        'cottage':      ['茅屋芝士'],
+        'couscous':     ['庫斯庫斯', '小米'],
+        'creamcheese':  ['奶油乳酪', '忌廉起司', '忌廉芝士'],
+        'cumin':        ['孜然'],
         'double espresso':  ['義式濃縮咖啡'],
-        'egg':      ['雞蛋', '蛋'],
+        'egg':              ['雞蛋', '蛋'],
         'garbanzo bean':    ['鷹嘴豆'],
-        'ghee':     ['酥油', '無水奶油'],
-        'green apple':  ['青蘋果'],
+        'ghee':             ['酥油', '無水奶油'],
+        'green apple':      ['青蘋果'],
         'green onions':     ['綠蔥'],
         'hersheys cocoa':   ['無糖純可可粉'],     # 去品牌名
         'hummus':       ['鷹嘴豆泥'],
         'ketchup':      ['番茄醬'],
         'lemon juice':  ['檸檬汁'],
         'lemon':        ['檸檬'],
-        # 'mozzarellachease': ['莫茲瑞拉起司'],
         'mustard':  ['芥末'],
         'paprika':  ['甜椒粉', '紅甜椒粉', '煙燻紅椒粉'],
         'pasta':    ['義大利麵'],
@@ -86,13 +86,18 @@ class transSyn():
         'sungold':  ['黃金'],
         'swedish shrimp':   ['瑞典蝦'],
         'seaweed':  ['海苔'],
-        'applejuice':       ['蘋果果汁'],
-        '': [''],
-        '': [''],
-        '': [''],
+        'applejuice':   ['蘋果果汁'],
+        'black pepper': ['黑胡椒', '黑椒'],
+        'blackpepper':  ['黑胡椒'],
+        'orbalsamic':   ['or義大利香黑'],
+        # '': [''],
+        # '': [''],
+        # '': [''],
+        # '': [''],
     }
 
 class typoSyn():
+    # 注意1: 不會處理字尾空白. 意思是有時必需加空白才會拿掉
     typoDict = {
         '塔巴斯科辣椒醬': ['tabasco醬', 'tabasco辣醬', 'tabasco辣椒調味醬', 'tabasco'],
         '奶油乳酪': ['乳酪cream cheese', '乳脂cream cheese', '忌廉起司', '忌廉芝士', 'cream cheese'],
@@ -101,25 +106,28 @@ class typoSyn():
         '膳食纖維粉': ['vitafiber'],
         '牛番茄': ['大肉茄番茄'],
         '奶酪乾': ['jerky 起司'],
-        '莫茲瑞拉': ['馬芝瑞拉'],
         '家樂氏原味香脆麥米片': ['家樂氏麥米片', '家樂氏原味米麥片', '家樂氏原味麥米片', '家樂氏香脆麥米片原味', '家樂氏香脆麥米片'],
-        '義大利香黑醋': ["義大利黑醋", "balsamico", "香油酢(balsamic vinegar)",
+        '義大利香黑醋': ["義大利黑醋", "balsamico", "香油酢(balsamic vinegar)", "balsamic 醋",
                 "balsamico 葡萄酒醋", "義大利香黑醋", "巴薩米克黑醋", "義式香醋balsamic",
                 "巴沙米可醋 balsamic vinegar", "balsamico紅酒醋", "黑醋 balsamic vinegar",
-                "意大利黑醋", "意式黑醋", "巴薩米可醋balsamic", "義式黑醋", "巴薩米克醋balsamic",
-                "黑醋balsamic", "balsamic醬", "紅酒醋(balsamic)", "balsamico(紅酒醋)", "balsamic 醋"
-                "義大利甜醋balsamicvinegar"],
+                "義式黑醋", "巴薩米可醋balsamic", "義式黑醋", "巴薩米克醋balsamic", 'balsamique',
+                "黑醋balsamic", "balsamic醬", "紅酒醋(balsamic)", "balsamico(紅酒醋)",
+                "義大利甜醋balsamicvinegar", 'balsamic vinegar'],
         '巴薩米克': ["巴薩米克(balsamico)", "巴沙米可", "巴沙米克", "巴沙米哥", "巴塞米",
                 "巴撒米可", "巴撒米克", "巴薩米可", "巴薩米克", "巴薩米"],
         '香芹': ['香草 parsley', '香草 parsley', '歐芹', '歐芹parsley', '香芹parsley', '香菜parsley'],
-        '黃金奇異果': ['ZESPRI SUN GOLD奇異果'],
-        '低卡可樂': ['Zero 可樂'],
-        '藜麥': ['Quinoa藜米'],
+        '莫札瑞拉':['馬扎瑞拉', '馬自瑞拉', '馬芝瑞拉', '馬茲瑞拉', '馬茲摩拉', '馬茲羅拉', '馬蘇里拉',
+                '莫扎瑞拉', '莫左瑞拉', '莫札瑞拉', '莫札雷拉', '莫拉瑞拉', '莫茲瑞拉', '莫薩里拉',
+                '瑪芝瑞拉', '瑪茲瑞拉'],
+        '黃金奇異果': ['zespri sun gold奇異果'],
+        '低卡可樂': ['zero 可樂'],
+        '藜麥': ['quinoa藜米'],
         '帕馬森乾酪': ['Parmigiano起司'],
         'OmniPork ': ['omnipork'],
         'MyProtein ': ['myprotein ', 'myprotein'],
         # '低卡可樂': ['zero', '纖維可樂'],
         # '汽水': ['雪碧'],
+        '起司': ['起士', '芝士'],
         '小卷': ['小捲'],
         '帆立貝': ['凡立貝'],
         '燻雞': ['燻g'],
@@ -152,12 +160,10 @@ class typoSyn():
         '番薯': ['蕃薯', '甘薯', '甘藷', '地瓜', '沙葛'],
         '蒔蘿': ['洋茴香'],
         '車前': ['前車'],
-        '芥末': ['芥末mustard', '芥苿', '芥茉'],
+        '芥末': ['芥苿'],
         '芥末籽': ['芥末子', '芥末仔'],
         '莎莎醬': ['salsa醬'],
-        '莫茲瑞拉': ['莫札瑞拉', '莫札拉', '莫札雷拉', '莫薩里拉'],
         '馬斯卡彭': ['馬斯卡朋', '馬斯卡邦'],
-        '起司': ['芝士'],
         '凱撒': ['凱薩', '凱薩琳'],
         '鹽': ['塩', '盬', '塩巴', '鹽巴'],
         '煉乳': ['煉奶', '練奶', '炼奶'],
@@ -177,15 +183,26 @@ class typoSyn():
     def __init__(self):
         self._lookup = {}
         for item, values in self.typoDict.items():
+            # if '起司' == item:
+            #     print('1')
             for val in values:
-                self._lookup[val] = item
+                self._lookup[val.lower()] = item
         self._lookup = sorted(self._lookup.items(), key=lambda x:len(x[0]), reverse=True)
 
     def replaceTypo(self, value):
+        # if '焦糖乳清' in value:
+        #     print('1')
         lowerV = value.lower()
-        for typo, key in self._lookup:
-            if typo in lowerV:
-                return lowerV.replace(typo, key)
+        count = 0
+        while True:
+            for typo, key in self._lookup:
+                if typo in lowerV:
+                    lowerV = lowerV.replace(typo, key)
+                    count += 1
+            else:
+                break
+        if count > 0:
+            return lowerV
         return value
 
 class groupSyn():
@@ -203,7 +220,7 @@ class groupSyn():
         "低卡可樂",
         "可樂",
         "汽水",
-       ["優格", "Greek"],
+       ["優格"],
         "養樂多",
         "冰淇淋",
        ["黃布丁", "布丁"],
@@ -245,11 +262,11 @@ class groupSyn():
        ["塔皮", "派皮"],
 
        ["乾酪", "帕馬森"],
-       ["乳酪", "起司", "瑞可達", "博康奇尼", "莫茲瑞拉", "馬斯卡彭", "布拉塔", "哈瓦蒂"],
+       ["乳酪", "起司", "瑞可達", "博康奇尼", "莫札瑞拉", "馬斯卡彭", "布拉塔", "哈瓦蒂"],
        ["無鹽奶油", "忌廉", "動鮮"],
        ["鮮奶油"],
        ["淡奶油"],
-       ["低脂起司", "低脂莫茲瑞拉"],
+       ["低脂起司", "低脂莫札瑞拉"],
        ["奶油"],
        ['酥油', '無水奶油'],
 
@@ -364,7 +381,7 @@ class groupSyn():
        ["調味料", "滷汁包", "風味料", "鮮味炒手", "自然鮮", "滷包"],
        ["高湯塊", "麻辣鍋底"],
        ["味精", "味素"],
-       ["醋", "巴沙米可醋"],
+       ["醋", "巴薩米克醋", "義大利香黑醋"],
        ["醬料", "老乾媽"],
        ["醬油", "滷汁"],
        ["山葵", "綠芥末", "wasabi", "哇沙米"],
@@ -379,6 +396,7 @@ class groupSyn():
         for item in self.Synonym:
             if isinstance(item, list):
                 self.dict[item[0]] = item[:]
+                ## Todo: 字串長的先作, 再作短字串
                 # for i in item:
                 #     ilen = str(len(i)).zfill(2)
                 #     if not ilen in dicN:
