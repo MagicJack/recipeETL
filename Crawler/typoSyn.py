@@ -1,4 +1,96 @@
-class transSyn():
+import re
+
+class ZhcnSynonym():
+    _cnChar = list("仼优兰刴发咸国圣块坚塩头姜嫰岛庄徳择掦无柠榄殻温湿炼猕现瑶盐筛籮类緑红绿苹荀荞葱蓝蔴蕯虾记调辢过选酱针铃铝铺锦门韮须饺马鱼鲍鲜鳯鸡麦黄黒龙⽔")
+    # 你 should change '姜'->'薑', '籮'->'蘿', '荀'->'筍' manually, and add '⽔'->'水' manually, if run convertZ.exe to generate twChar
+    _twChar = list("任優蘭剁發鹹國聖塊堅鹽頭薑嫩島莊德擇揚無檸欖殼溫濕煉獼現瑤鹽篩蘿類綠紅綠蘋筍蕎蔥藍麻薩蝦記調辣過選醬針鈴鋁鋪錦門韭須餃馬魚鮑鮮鳳雞麥黃黑龍水")
+
+    _cn2twWord = {
+        '豆乾': '豆干',
+        '魚乾': '魚干',
+        '梅乾': '梅干',
+        '菜乾': '菜干',
+        '肉乾': '肉干',
+        '乾果': '干果',
+        '干貝': '乾貝',
+        '葡萄乾': '葡萄干',
+        '芥末': '芥苿',
+        '豆豉': '豆鼓',
+        '伍斯特辣醬': '喼汁',
+        '豬鍵子': '豬𦟌肉',
+        '牛鍵': '牛𦟌肉',
+        '豬鍵': '豬𦟌',
+        '牛鍵': '牛𦟌',
+        # '伊籐': '伊藤',
+        '蘿蔔': '萝卜',
+        '菠蘿': '菠萝',
+        '麵粉': '面粉',
+        '麵包': '面包',
+        '龍鬚麵': '龍須面',
+        '義大利':'意大利',
+        '義式': '意式',
+        }
+
+    _ChiSym1 = [
+        '（','［','〔','﹝','【','「','＜','〈','《','『',
+        '）','］','〕','﹞','】','」','＞','〉','》','』',
+        '／','％','’','　','＊','*','•','◆','￼',
+        ':', '；', ',', '，' ]
+    _ChiSym2 = [
+        '(', '[', '[', '[', '[', '[', '[', '[', '[', '[',
+        ')', ']', ']', ']', ']', ']', ']', ']', ']', ']',
+        '/', '%', "'", ' ',  '',  '',  '',  '', '',
+        '：', '：', '、', '、' ]
+
+    def _cvtChar(self, ch):
+        if ch in self._cnChar:
+            return self._twChar[self._cnChar.index(ch)]
+        return ch
+
+    def parseWord(self, line):
+        line = "".join([self._cvtChar(ch) for ch in line]).strip()
+        # Loop until no more cnWords
+        while True:
+            for twW, cnW in self._cn2twWord.items():
+                if cnW in line:
+                    line = line.replace(cnW, twW)
+                    # break
+            else:
+                break
+        return line
+
+
+    def _cvtSym(self, ch):
+        if ch in self._ChiSym1:
+            return self._ChiSym2[self._ChiSym1.index(ch)]
+        return ch
+
+    def parseSymbol(self, line):
+        return "".join([self._cvtSym(ch) for ch in line]).strip()
+
+
+class EngSynonym():
+    # 可以直接刪掉名字的品牌
+    # 會處理後面的 空白
+    _brandList = [
+        'bodykey',
+        'bragg',
+        # "mozzarella",
+        'iherb',
+        'costco',
+        'classico',
+        'pb2',
+        'sweet relish',
+        'granola',
+        'zespri',
+        'spark shake',
+        'sparkshake',
+        'real salt',
+        's&b',
+        # 's&b ',
+        'redlentil',
+    ]
+
     # 用於 英翻中 並刪除重覆, 故需要多個 '譯名'
     # 1st: 用於 英翻中 (無中文)
     # 2nd~: 用於 刪除重覆, 即直接將英文刪除.
@@ -90,13 +182,61 @@ class transSyn():
         'black pepper': ['黑胡椒', '黑椒'],
         'blackpepper':  ['黑胡椒'],
         'orbalsamic':   ['or義大利香黑'],
-        # '': [''],
+        'maydanoz':     ['香菜'],
         # '': [''],
         # '': [''],
         # '': [''],
     }
+    def __init__(self):
+        pass
 
-class typoSyn():
+    def replaceBrand(self, value):
+        pass
+
+
+    _rgx7 = re.compile(r'([\u3001\u4e00-\u9fa5\uFF01-\uFF5E]+)')
+    # _rgx8 = re.compile(r'\(?([a-z][a-z& ]+)\)', re.I)
+    _rgx8 = re.compile(r'([a-z][a-z2& ]+)', re.I)
+    _rgx9 = re.compile(r'\((?:[\u4e00-\u9fa5]*)?\s*([a-z][a-z2& ]+)(?:[\u4e00-\u9fa5]*)?\)', re.I)
+
+
+    def _searchMore(self, idx, vstr):
+        if idx > vstr.find('(') > 0:
+            mat = self._rgx9.search(vstr)
+            return '' if not mat else mat.group(1)
+        else:
+            mat = self._rgx8.search(vstr[idx:])
+            return '' if not mat else mat.group(1)
+
+
+    def replaceTran(self, vstr):
+
+        # if '牛番茄or大番茄tomato' in vstr:
+        #     print('1')
+        sidx = 0
+        midx = 0
+        while True:
+            mat = self._rgx8.search(vstr[sidx:])
+            if not mat:     break
+
+            word = mat.group(1).strip().lower()
+            # if '牛番茄or大番茄tomato' in vstr:
+            #     print('1')
+            if word in self._brandList:
+                return vstr.replace(self._searchMore(midx, vstr), '')
+            if word in self.Synonym:
+                trans = self.Synonym[word]
+                for tran in trans:
+                    if tran in vstr:
+                        return vstr.replace(self._searchMore(midx, vstr), '')
+                else:
+                    return vstr.replace(self._searchMore(midx, vstr), trans[0])
+            sidx += mat.end(0)
+            midx = sidx + mat.start(0)
+        return vstr
+
+
+class TypoSyn():
     # 注意1: 不會處理字尾空白. 意思是有時必需加空白才會拿掉
     typoDict = {
         '塔巴斯科辣椒醬': ['tabasco醬', 'tabasco辣醬', 'tabasco辣椒調味醬', 'tabasco'],

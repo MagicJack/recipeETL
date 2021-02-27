@@ -1,4 +1,4 @@
-import sys, json
+import os, sys, json
 
 from clnIngred import ingCleaner
 
@@ -11,19 +11,35 @@ foodFreq = {}
 nClean = int(sys.argv[1])  if len(sys.argv) > 1 else 4
 bVerb  = bool(sys.argv[2]) if len(sys.argv) > 2 else False
 
+def load_ID(path):
+    ID_file = path
+    ID_dict = set()
+    if not os.path.isfile(ID_file):
+        return ID_dict
+
+    with open(ID_file, "r", encoding='utf-8') as f:
+        for line in f:
+            ID_dict.add(line[:-1])
+    return ID_dict
+
+ng_ID = load_ID('ID_exclude.txt')
+
 def myProcess(line):
     global foodList, foodFreq, count
     # global cleaner
 
     data = json.loads(line)
+    food_ID = data['food_ID']
+    if food_ID in ng_ID:    return
+
     count += 1
     for food, qty in data['食譜'].items():  # 抓出"食譜"中的所有 key 和 值
         if nClean:
-            nfood = cleaner.cleanIng(data['food_ID'], food, bVerb=bVerb, nClean=nClean)
+            nfood = cleaner.cleanIng(food_ID, food, bVerb=bVerb, nClean=nClean)
         else:
             nfood = food
 
-        if cleaner.checkSkip(data['food_ID'], nfood, qty, bVerb=bVerb):
+        if cleaner.checkSkip(food_ID, nfood, qty, bVerb=bVerb):
             pass
 
         if nfood in foodList:
@@ -42,7 +58,7 @@ for i in folders:
 print(len(foodList)) # 總共多少食材
 print(count) # 總共幾個食譜
 skip = cleaner.getSkip()
-print(f"少許: {skip[0]}, 適量:{skip[1]}")
+print(f"少許: {skip[0]}, 適量:{skip[1]}, 空白:{skip[2]}")
 
 
 # # 計算食材出現詞頻
