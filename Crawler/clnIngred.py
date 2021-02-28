@@ -14,11 +14,12 @@ class ingCleaner():
     # (...)xxx(...)?
     _rgx2 = re.compile(r'([(\[].*?[)\]])\s*(.+)\s*([(\[].*?[)\]])?')
     # Clean 'xx(~', '~)xx'
-    # Disable all of _rgx3? due to using and exclude list of processing
+    # Disable some of _rgx3? due to using and exclude list of processing
     # _rgx3a = re.compile(r'^((?:7|7-|7-ELEVEN)11|7-ELEVEN)\s?', re.I)
     # _rgx3b = re.compile(r'^(.) {1,3}(.)$')
     # _rgx3c = re.compile(r'^([.\]、]|[1-9]：)')
-    # _rgx3d = re.compile(r'^[1-9]([^號吋層塊砂\x00-\xff].*)')
+    _rgx3d = re.compile(r'^[1-9]([^號吋層塊砂\x00-\xff].*)')
+    _rgx3e = re.compile(r'^(蘇打粉)')
     _rgx4 = re.compile(r'(.+[：︰～]|[a-j1-9][.:\-])\s*(.+)', re.I)
     _rgx5 = re.compile(r'(.+)\s*\(.*')
     _rgx6 = re.compile(r'.+\)\s*(.+)')
@@ -39,8 +40,7 @@ class ingCleaner():
         # Part0: 簡中 --> 繁中
         def _cleanIng0(vstr):
             # 處理符號含全型半型...
-
-            vstr = "".join([self._zhcnTrans.parseSymbol(ch) for ch in vstr]).strip()
+            vstr = self._zhcnTrans.parseSymbol(vstr)
             vstr = self._zhcnTrans.parseWord(vstr)
             # 英轉中, 刪 食材字串 裡的重覆
             vstr = self._engTrans.replaceTran(vstr)
@@ -57,10 +57,16 @@ class ingCleaner():
 
         # Part2: 處理 奇奇怪怪 的
         def _cleanIng2(vstr):
+            # for i, x in enumerate([self._rgx3a, self._rgx3b, self._rgx3c, self._rgx3a]):
+            #     xtmp = re.search(x, vstr)
+            #     if xtmp:
+            #         print(f'{id:>8}, {vstr}, {i}: {xtmp.group(1)}')
             # vstr = self._rgx3a.sub('[7-11] ', vstr)
             # vstr = self._rgx3b.sub(r'\1\2', vstr)
             # vstr = self._rgx3c.sub('', vstr)
-            # vstr = self._rgx3d.sub(r'\1', vstr)
+            vstr = self._rgx3d.sub(r'\1', vstr)
+            # 蘇打粉 --> 小蘇打粉
+            vstr = self._rgx3e.sub(r'小\1', vstr)
 
             mat = _doRegex(self._rgx4, vstr, bVerb)
             if mat: return mat.group(2)
@@ -94,32 +100,26 @@ class ingCleaner():
 
 
     # Class Method
-    _skipA = 0
-    _skipB = 0
-    _skipC = 0
+    _skipA = set()
+    _skipB = set()
+    _skipC = set()
     def checkSkip(self, id, food, qty, bVerb=False):
-        # for i, x in enumerate([self._rgx3a, self._rgx3b, self._rgx3c, self._rgx3a]):
-        #     xtmp = re.match(x, food)
-        #     if xtmp:
-        #         print(f'{id}, {food}, {qty}, {i}: {xtmp.group(1)}')
-        # if '▊' in food:
-        #     print(f'{id}, {food}, {qty}')
+        # if '小烤箱椰奶用量' in food:
+        #     print(f'{id:>8}, {food}, {qty}')
         if qty == '' or qty == '-'or qty == '如下':
-            self._skipC += 1
-            print(f'{id}, {food}, {qty}')
-            return True
-        if not "、" in food:
-            return False
-        # if "、" in qty:
-        if "少許" in qty:
-            if bVerb: print(f"{id:>8}, {food}, {qty}")
-            self._skipA += 1
-            return True
-        elif "適量" in qty:
-            if bVerb: print(f"{id:>8}, {food}, {qty}")
-            self._skipB += 1
-            return True
-        return False
+            self._skipC.add(id)
+            if bVerb: print(f'{id:>8}, {food}, {qty}')
+            return 1
+        if "、" in food:
+            if "少許" in qty:
+                if bVerb: print(f"{id:>8}, {food}, {qty}")
+                self._skipA.add(id)
+                return 2
+            elif "適量" in qty:
+                if bVerb: print(f"{id:>8}, {food}, {qty}")
+                self._skipB.add(id)
+                return 3
+        return 0
 
     # Class Method
     def getSkip(self):

@@ -14,15 +14,18 @@ bVerb  = bool(sys.argv[2]) if len(sys.argv) > 2 else False
 def load_ID(path):
     ID_file = path
     ID_dict = set()
-    if not os.path.isfile(ID_file):
-        return ID_dict
-
-    with open(ID_file, "r", encoding='utf-8') as f:
-        for line in f:
-            ID_dict.add(line[:-1])
+    # if not os.path.isfile(ID_file):
+    #     return ID_dict
+    try:
+        with open(ID_file, "r", encoding='utf-8') as f:
+            for line in f:
+                ID_dict.add(line.replace('\n', ''))
+    except:
+        print('No excluding list loaded.')
     return ID_dict
 
 ng_ID = load_ID('ID_exclude.txt')
+skip_ID = set()
 
 def myProcess(line):
     global foodList, foodFreq, count
@@ -39,8 +42,9 @@ def myProcess(line):
         else:
             nfood = food
 
-        if cleaner.checkSkip(food_ID, nfood, qty, bVerb=bVerb):
-            pass
+        if cleaner.checkSkip(food_ID, nfood, qty, bVerb=True) > 0:
+            skip_ID.add(food_ID)
+            # continue
 
         if nfood in foodList:
             foodFreq[nfood] += 1
@@ -57,8 +61,9 @@ for i in folders:
 
 print(len(foodList)) # 總共多少食材
 print(count) # 總共幾個食譜
-skip = cleaner.getSkip()
-print(f"少許: {skip[0]}, 適量:{skip[1]}, 空白:{skip[2]}")
+skipA, skipB, skipC = cleaner.getSkip()
+print(f"少許:{len(skipA)}\nList:{skipA}\n\n適量:{len(skipB)}\nList:{skipB}\n\n空白:{len(skipC)}\nList:{skipC}\n")
+print(f'To Skip:{len(skip_ID)}\nList:{skip_ID}')
 
 
 # # 計算食材出現詞頻
