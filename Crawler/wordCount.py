@@ -4,7 +4,8 @@ from clnIngred import ingCleaner
 
 folders = ["低脂","生酮","低醣","沙拉","高蛋白","健身","高纖"]
 
-count = 0
+cntTotal = 0
+cntProcs = 0
 foodList = []
 foodFreq = {}
 
@@ -27,16 +28,13 @@ def load_ID(path):
 ng_ID = load_ID('ID_exclude.txt')
 skip_ID = set()
 
-def myProcess(line):
-    global foodList, foodFreq, count
-    # global cleaner
+cleaner = ingCleaner()
 
-    data = json.loads(line)
-    food_ID = data['food_ID']
-    if food_ID in ng_ID:    return
+def procIngrdent(food_ID, ingreds):
+    global foodList, foodFreq, cntTotal
+    global cleaner
 
-    count += 1
-    for food, qty in data['食譜'].items():  # 抓出"食譜"中的所有 key 和 值
+    for food, qty in ingreds.items():  # 抓出"食譜"中的所有 key 和 值
         if nClean:
             nfood = cleaner.cleanIng(food_ID, food, bVerb=bVerb, nClean=nClean)
         else:
@@ -46,6 +44,7 @@ def myProcess(line):
             skip_ID.add(food_ID)
             # continue
 
+        # 計算食材出現詞頻
         if nfood in foodList:
             foodFreq[nfood] += 1
         else:
@@ -53,27 +52,23 @@ def myProcess(line):
         foodList.append(nfood)
         #print(food) # 所有食材
 
-cleaner = ingCleaner()
 for i in folders:
     with open(f'{i}/{i}.txt', 'r', encoding='utf-8') as f:
         for line in f:              # 使用迴圈方式一條一條抓
-            myProcess(line)
+            data = json.loads(line)
+            cntTotal += 1
+            food_ID = data['food_ID']
+            if food_ID not in ng_ID:
+                procIngrdent(food_ID, data['食譜'])
+                cntProcs += 1
 
-print(len(foodList)) # 總共多少食材
-print(count) # 總共幾個食譜
 skipA, skipB, skipC = cleaner.getSkip()
 print(f"少許:{len(skipA)}\nList:{skipA}\n\n適量:{len(skipB)}\nList:{skipB}\n\n空白:{len(skipC)}\nList:{skipC}\n")
 print(f'To Skip:{len(skip_ID)}\nList:{skip_ID}')
 
+print(len(foodList)) # 總共多少食材
+print(cntTotal, cntProcs) # 總共幾個食譜
 
-# # 計算食材出現詞頻
-# foodFreq = {}
-# for i in foodList:
-#     if i in foodFreq:
-#         foodFreq[i] += 1
-#     else:
-#         foodFreq[i] = 1
-# print(foodFreq)
 
 # 詞頻轉成表格
 import pandas as pd
