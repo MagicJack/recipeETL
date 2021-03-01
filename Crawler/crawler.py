@@ -14,25 +14,28 @@ from time import sleep
 def save_total_json(keyword):
     fp = keyword
     file_folder = f'./{fp}/'
+    jsonFp = open(file_folder + f'{fp}'+ ".json", 'w', encoding='utf-8')
     with open(file_folder + f'{fp}'+ ".txt", 'r', encoding='utf-8') as load_f:
-        load_list = load_f.read().split('\n') #把每筆資料整理成 list列表
-        load_list.remove("")
-
-    for i, j in enumerate(load_list):
-        load_list[i] = json.loads(j)
-
-    with open(file_folder + f'{fp}'+ ".json", 'w', encoding='utf-8') as load_f:
-        json.dump(load_list, load_f, ensure_ascii=False)
+        lCnt = 0
+        for line in load_f:
+            head = '[' if lCnt == 0 else ','
+            jsonFp.write(head+line[:])
+            lCnt += 1
+    jsonFp.write(']')
+    jsonFp.close()
     print("finished")
 
 def load_ID(path):
     ID_file = path
-    ID_dict = {}
+    ID_dict = set()
     if os.path.isfile(ID_file):
         with open(ID_file, "r", encoding='utf-8') as f:
             for line in f.readlines():
                 if line != "":
-                    ID_dict[line.split('\n')[0]] = True
+                    # 不要直接少一個字 (最後一行不見得有換行字元)
+                    line = line.replace('\n', '')
+                    if len(line) > 0:
+                        ID_dict.add(line)
     else:
         with open(ID_file, "w", encoding='utf-8') as f:
             f.write("")
@@ -77,6 +80,104 @@ def clean_data(data_str, type_name):
         print("Wrong type_name")
         return data
 
+
+userAgent ='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36'
+
+def crawlOne(keyword, ID_dict, href):
+    food_Info = {}
+
+    aTag = href.select_one('a')['href']
+    ID = aTag.split('/')[2]
+
+    if ID in ID_dict:
+        print("ID already existed")
+        return
+    else:
+        with open("ID_list.txt", "a", encoding='utf-8') as f:
+            f.write(f'{ID}\n')
+
+    food_Info["food_ID"] = ID # 插入 ID
+    ID_dict.add(ID)
+    recipeName = href.select_one('h2.browse-recipe-name')['data-title']
+    recipeName_ret = clean_emotion(recipeName)
+    food_Info["菜名"] = recipeName_ret # 插入菜名
+    recipesUrl = 'https://icook.tw' + str(aTag)
+    food_Info["url"] = recipesUrl # 插入 url
+
+    recipesHeaders = {'User-Agent': userAgent, 'Referer': recipesUrl}
+    recipesReq = requests.get(recipesUrl, headers = recipesHeaders)
+    recipesSoup = BeautifulSoup(recipesReq.text, 'html.parser')
+
+    ranking = recipesSoup.select('span.stat-content')[0].text #推讚數
+    try:
+        food_Info["推讚數"] = ranking.split(' ')[0]
+    except Exception as e:
+        #print(f'推讚數 error: {e}')
+        food_Info["推讚數"] = None
+
+
+    try:
+        viewing = recipesSoup.select('div.recipe-detail-meta-item')[0].text #瀏覽數
+        food_Info["瀏覽數"] = viewing.strip().split(' ')[0]
+
+    except Exception as e:
+        #print(f'瀏覽數 error: {e}')
+        food_Info['瀏覽數'] = None
+
+    try:
+        description = recipesSoup.select('div.description')[0].text #料理簡介
+        if description.split()[0] =='null':
+            food_Info["料理簡介"] = None
+        else:
+            food_Info["料理簡介"] = clean_emotion(description.split()[0])
+    except Exception as e:
+        #print(f'料理簡介 error: {e}')
+        food_Info["料理簡介"] = None
+
+    try:
+        servingNum = recipesSoup.select('span.num')[0].text #份數的數字
+        #servingUnit = recipesSoup.select('span.unit')[0].text #份數的單位
+        food_Info["份數"] = f'{servingNum}'
+    except Exception as e:
+        #print(f'份數 error: {e}')
+        food_Info["份數"] = None
+
+    food_Info["食譜"]={}
+    #food_Info["食譜"]=[]
+    food_Info["步驟"]=[]
+    recipePage = recipesSoup.select('div.row')
+
+    ingre = recipePage[3]
+    if len(ingre.select('a.ingredient-search')) == 0:
+        ingre = recipePage[2]
+
+    for n in range(len(ingre.select('a.ingredient-search'))):
+        #food_dict ={}
+        ingre1 = ingre.select('a.ingredient-search')[n].text #食材的名稱
+        ingre_ret = clean_data(ingre1, "食材名稱")
+        unit1 = ingre.select('div.ingredient-unit')[n].text #食材的分量
+        unit_ret = clean_data(unit1, "食材份量")
+        #food_dict[ingre1] = unit1
+        #food_Info["食譜"].append(food_dict)
+        food_Info["食譜"][ingre_ret]= unit_ret
+
+    for m in range(len(ingre.select('p.recipe-step-description-content'))):
+        #step_dict = {}
+        step = ingre.select('p.recipe-step-description-content')[m].text #食材的步驟
+        step_ret = clean_data(step, "步驟")
+        #step_dict[f"step{m+1}"]= step_ret
+        #food_Info["步驟"].append(step_dict)
+        food_Info["步驟"].append(step_ret)
+        file = f'./{keyword}/{keyword}.txt'
+    with open(file, "a", encoding='utf-8') as f: #存成 json格式
+        json.dump(food_Info, f, ensure_ascii= False)
+        f.write('\n')
+        print("")
+        print(f"ID:{ID}\n已載入入檔案完成...")
+        print("==================================="*3)
+    # food_Info.clear()
+
+
 def recipes(food):
     keyword = food
     try:
@@ -88,7 +189,7 @@ def recipes(food):
     userAgent ='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36'
     page = 1
     count = 0
-    food_Info = {}
+    # food_Info = {}
     ID_dict = load_ID("ID_list.txt")
     #print(ID_dict)
     while page <= 1000:
@@ -121,93 +222,7 @@ def recipes(food):
         #print(f'ID list : {ID_dict}')
 
         for href in recipes:
-            aTag = href.select_one('a')['href']
-            ID = aTag.split('/')[2]
-
-            if ID in ID_dict:
-                print("ID already existed")
-                continue
-            else:
-                with open("ID_list.txt", "a", encoding='utf-8') as f:
-                    f.write(ID)
-                    f.write("\n")
-                food_Info["food_ID"] = ID # 插入 ID
-                ID_dict[ID]= True
-                recipeName = href.select_one('h2.browse-recipe-name')['data-title']
-                recipeName_ret = clean_emotion(recipeName)
-                food_Info["菜名"] = recipeName_ret # 插入菜名
-                recipesUrl = 'https://icook.tw' + str(aTag)
-                food_Info["url"] = recipesUrl # 插入 url
-
-                recipesHeaders = {'User-Agent': userAgent, 'Referer': recipesUrl}
-                recipesReq = requests.get(recipesUrl, headers = recipesHeaders)
-                recipesSoup = BeautifulSoup(recipesReq.text, 'html.parser')
-
-                ranking = recipesSoup.select('span.stat-content')[0].text #推讚數
-                try:
-                    food_Info["推讚數"] = ranking.split(' ')[0]
-                except Exception as e:
-                    #print(f'推讚數 error: {e}')
-                    food_Info["推讚數"] = None
-
-
-                try:
-                    viewing = recipesSoup.select('div.recipe-detail-meta-item')[0].text #瀏覽數
-                    food_Info["瀏覽數"] = viewing.strip().split(' ')[0]
-
-                except Exception as e:
-                    #print(f'瀏覽數 error: {e}')
-                    food_Info['瀏覽數'] = None
-
-                try:
-                    description = recipesSoup.select('div.description')[0].text #料理簡介
-                    if description.split()[0] =='null':
-                        food_Info["料理簡介"] = None
-                    else:
-                        food_Info["料理簡介"] = clean_emotion(description.split()[0])
-                except Exception as e:
-                    #print(f'料理簡介 error: {e}')
-                    food_Info["料理簡介"] = None
-
-                try:
-                    servingNum = recipesSoup.select('span.num')[0].text #份數的數字
-                    #servingUnit = recipesSoup.select('span.unit')[0].text #份數的單位
-                    food_Info["份數"] = f'{servingNum}'
-                except Exception as e:
-                    #print(f'份數 error: {e}')
-                    food_Info["份數"] = None
-
-                food_Info["食譜"]={}
-                #food_Info["食譜"]=[]
-                food_Info["步驟"]=[]
-                recipePage = recipesSoup.select('div.row')
-
-                ingre = recipePage[3]
-                for n in range(len(ingre.select('a.ingredient-search'))):
-                    #food_dict ={}
-                    ingre1 = ingre.select('a.ingredient-search')[n].text #食材的名稱
-                    ingre_ret = clean_data(ingre1, "食材名稱")
-                    unit1 = ingre.select('div.ingredient-unit')[n].text #食材的分量
-                    unit_ret = clean_data(unit1, "食材份量")
-                    #food_dict[ingre1] = unit1
-                    #food_Info["食譜"].append(food_dict)
-                    food_Info["食譜"][ingre_ret]= unit_ret
-
-                for m in range(len(ingre.select('p.recipe-step-description-content'))):
-                    #step_dict = {}
-                    step = ingre.select('p.recipe-step-description-content')[m].text #食材的步驟
-                    step_ret = clean_data(step, "步驟")
-                    #step_dict[f"step{m+1}"]= step_ret
-                    #food_Info["步驟"].append(step_dict)
-                    food_Info["步驟"].append(step_ret)
-                    file = f'./{keyword}/{keyword}.txt'
-                with open(file, "a", encoding='utf-8') as f: #存成 json格式
-                    json.dump(food_Info, f, ensure_ascii= False)
-                    f.write('\n')
-                    print("")
-                    print(f"ID:{ID}\n已載入入檔案完成...")
-                    print("==================================="*3)
-                food_Info.clear()
+            crawlOne(keyword, ID_dict, href)
 
         sleep(random.uniform(1, 3))
         page += 1
