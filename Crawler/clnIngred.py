@@ -1,7 +1,7 @@
 import re
 from typoSyn import *
 
-class ingCleaner():
+class ingredCleaner():
     def __init__(self):
         pass
 
@@ -26,7 +26,7 @@ class ingCleaner():
 
 
     # Class Method
-    def cleanIng(self, id, vstr, bVerb=False, nClean=4):
+    def clean(self, id, vstr, bVerb=False, nClean=4):
 
         # Regex executer with log flag
         def _doRegex(rgx, vstr, bVerb=False):
@@ -106,6 +106,8 @@ class ingCleaner():
     def checkSkip(self, id, food, qty, bVerb=False):
         # if '小烤箱椰奶用量' in food:
         #     print(f'{id:>8}, {food}, {qty}')
+        if isinstance(qty, list):
+            return 0
         if qty == '' or qty == '-'or qty == '如下':
             self._skipC.add(id)
             if bVerb: print(f'{id:>8}, {food}, {qty}')
