@@ -83,28 +83,16 @@ def clean_data(data_str, type_name):
 
 userAgent ='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36'
 
-def crawlOne(keyword, ID_dict, href):
+def crawlOne(ID, recipeName, recipesUrl):
     food_Info = {}
 
-    aTag = href.select_one('a')['href']
-    ID = aTag.split('/')[2]
-
-    if ID in ID_dict:
-        print("ID already existed")
-        return
-    else:
-        with open("ID_list.txt", "a", encoding='utf-8') as f:
-            f.write(f'{ID}\n')
-
     food_Info["food_ID"] = ID # 插入 ID
-    ID_dict.add(ID)
-    recipeName = href.select_one('h2.browse-recipe-name')['data-title']
-    recipeName_ret = clean_emotion(recipeName)
-    food_Info["菜名"] = recipeName_ret # 插入菜名
-    recipesUrl = 'https://icook.tw' + str(aTag)
+
+    food_Info["菜名"] = clean_emotion(recipeName) # 插入菜名
     food_Info["url"] = recipesUrl # 插入 url
 
     recipesHeaders = {'User-Agent': userAgent, 'Referer': recipesUrl}
+
     recipesReq = requests.get(recipesUrl, headers = recipesHeaders)
     recipesSoup = BeautifulSoup(recipesReq.text, 'html.parser')
 
@@ -115,11 +103,9 @@ def crawlOne(keyword, ID_dict, href):
         #print(f'推讚數 error: {e}')
         food_Info["推讚數"] = None
 
-
     try:
         viewing = recipesSoup.select('div.recipe-detail-meta-item')[0].text #瀏覽數
         food_Info["瀏覽數"] = viewing.strip().split(' ')[0]
-
     except Exception as e:
         #print(f'瀏覽數 error: {e}')
         food_Info['瀏覽數'] = None
@@ -168,18 +154,37 @@ def crawlOne(keyword, ID_dict, href):
         #step_dict[f"step{m+1}"]= step_ret
         #food_Info["步驟"].append(step_dict)
         food_Info["步驟"].append(step_ret)
-        file = f'./{keyword}/{keyword}.txt'
-    with open(file, "a", encoding='utf-8') as f: #存成 json格式
-        json.dump(food_Info, f, ensure_ascii= False)
-        f.write('\n')
-        print("")
-        print(f"ID:{ID}\n已載入入檔案完成...")
-        print("==================================="*3)
-    # food_Info.clear()
+    return json.dumps(food_Info, ensure_ascii= False)
 
 
-def recipes(food):
+def checkRecrawl(food):
+    file1 = f'./{food}/{food}.txt'
+    file2 = f'./{food}/{food}.org'
+    if os.path.exists(file2):
+        os.remove(file2)
+    os.rename(file1, file2)
+    fd2 = open(file2, 'r', encoding='utf-8')
+    with open(file1, 'w', encoding='utf-8') as fd1:
+        for line in fd2:
+            data = json.loads(line)
+            if len(data['食譜']) == 0 or len(data['步驟']) == 0:
+                ID = data['food_ID']
+                recipesUrl = data['url']
+                recipeName = data['菜名']
+                line = crawlOne(ID, recipeName, recipesUrl)+'\n'
+                # sleep(random.uniform(1, 3))
+            fd1.write(line)
+    fd2.close()
+    os.remove(file2)
+    save_total_json(food) # 將暫存的每筆到 txt內容，整理成一包大 json 格式檔案
+
+def recipes(food, bCheck=False):
     keyword = food
+
+    if bCheck:
+        checkRecrawl(food)
+        return
+
     try:
         os.makedirs(keyword) #為該 keyword 創建一個資料夾
     except FileExistsError:
@@ -192,7 +197,7 @@ def recipes(food):
     # food_Info = {}
     ID_dict = load_ID("ID_list.txt")
     #print(ID_dict)
-    while page <= 1000:
+    while page <= 1:
         url = 'https://icook.tw/search/' + foodWordUrl + '/?page=' + str(page)
         print(url)
         headers = {'User-Agent': userAgent, 
@@ -222,7 +227,27 @@ def recipes(food):
         #print(f'ID list : {ID_dict}')
 
         for href in recipes:
-            crawlOne(keyword, ID_dict, href)
+            aTag = href.select_one('a')['href']
+            ID = aTag.split('/')[2]
+
+            if ID in ID_dict:
+                print(f"ID already existed:{ID:>8}")
+                continue
+
+            with open("ID_list.txt", "a", encoding='utf-8') as f:
+                f.write(f'{ID}\n')
+            ID_dict.add(ID)
+
+            recipeName = href.select_one('h2.browse-recipe-name')['data-title']
+            recipesUrl = f'https://icook.tw{aTag}'
+            json_str = crawlOne(ID, recipeName, recipesUrl)
+
+            file = f'./{keyword}/{keyword}.txt'
+            with open(file, "a", encoding='utf-8') as f: #存成 json格式
+                f.write(json_str+'\n')
+                print(f"ID:{ID:>8}\n已下載, 並加入檔案完成...")
+                print("==================================="*2)
+            # food_Info.clear()
 
         sleep(random.uniform(1, 3))
         page += 1
@@ -231,9 +256,10 @@ def recipes(food):
 
 keyword = ["低脂", "生酮", "低醣", "沙拉", "高蛋白", "健身", "高纖"]  # 輸入查詢關鍵字 list
 
+bCheck = bool(sys.argv[1])  if len(sys.argv) > 1 else False
 
 for k in keyword:
-    recipes(k)
+    recipes(k, bCheck)
     print(f"{k}: 已全部完成")
     print("==================================="*3)
 
