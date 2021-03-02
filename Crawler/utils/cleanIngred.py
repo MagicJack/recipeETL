@@ -1,5 +1,5 @@
 import re
-from typoSyn import *
+from .typoSyn import *
 
 class ingredCleaner():
     def __init__(self):
