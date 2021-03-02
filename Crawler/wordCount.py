@@ -39,6 +39,7 @@ def procIngrdent(food_ID, ingreds, bVerb=bVerb, nClean=nClean):
         if nClean:
             nfood = iCleaner.clean(food_ID, food, bVerb=bVerb, nClean=nClean)
             qty_unit = qCleaner.clean(food_ID, qty, bVerb=bVerb)
+            print(f'{food_ID:>8}: {nfood:20}, {qty_unit}')
         else:
             qty_unit = qty
             nfood    = food

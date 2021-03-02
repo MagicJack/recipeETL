@@ -18,8 +18,8 @@ class qtyCleaner:
             return 0
 
 
-    _cnChar = list("适个条几两颗许汤块丝酙删头当丢选朶亳缶灌∼（）ｇ")
-    _twChar = list("適個條幾兩顆許湯塊絲斟刪頭當丟選朵毫罐罐~()g")
+    _cnChar = list("适个条几两颗许汤块丝酙删头当丢选朶亳缶灌辦∼（）ｇ")
+    _twChar = list("適個條幾兩顆許湯塊絲斟刪頭當丟選朵毫罐罐瓣~()g")
     def _cvtChar(self, ch):
         if ch in self._cnChar:
             return self._twChar[self._cnChar.index(ch)]
@@ -54,7 +54,7 @@ class qtyCleaner:
 
     _rgx3 = re.compile(r'(十(?:來|多|幾|五六))')
     _rgx4 = re.compile(r'(\d+)')
-    _unitsA = list('塊個顆根尾份盒片杯罐包辦瓣支隻粒')
+    _unitsA = list('塊個顆根尾份盒片杯罐包辦瓣支隻粒串副')
     _unitsB = ['克', 'g', 'cc', 'ml', 'mL']
     def _cvtNumStr(self, qtyStr):
         qtyStr = "".join([self._cvtNumChar(ch) for ch in qtyStr])
@@ -131,10 +131,11 @@ class qtyCleaner:
             return qstr
 
     _unitCvt = [
-        { "val":   15, "unit": "g", "keys": ['大湯匙', '湯匙', '汤匙', '大匙', '甲匙', '湯匙tbs', 'tbs', 'tbsp', 'tabsp', 'el'] },
-        { "val":    5, "unit": "g", "keys": ['小湯匙', '茶匙', '小匙', '丙匙', '匙', 'tsp', '茶匙tsp', 'tl', '小匙tsp.', 'tsp 茶匙', ''] },
+        { "val":   15, "unit": "g", "keys": ['大湯匙', '湯匙', '大匙', '甲匙', '湯匙tbs', 'tbs', '匙tbsp', 'tbsp', 'tabsp', '大匙tbsp.', 'el'] },
+        { "val":    5, "unit": "g", "keys": ['小湯匙', '茶匙', '小匙', '丙匙', '匙', '茶匙tsp', 'tsp', 'tl', '小匙tsp.', 'tsp 茶匙'] },
         { "val":  240, "unit":"ml", "keys": ['茶杯', '杯'] },
         { "val":   30, "unit":"ml", "keys": ['shot'] },
+        { "val":  300, "unit":"ml", "keys": ['嘜杯']},
         { "val": 1000, "unit":"ml", "keys": ['公升', 'L'] },
         { "val":   50, "unit": "g", "keys": ['市兩', '両'] },
         { "val": 37.5, "unit": "g", "keys": ['台兩', '兩'] },
@@ -157,7 +158,7 @@ class qtyCleaner:
         au1_lower = au[1].strip().lower()
         if au1_lower in ['cc', 'c.c', 'c.c.', 'ml', 'mls', 'ML', 'mI', '毫升', 'cc or不加', 'ml左右']:
             au[1] = 'ml'
-        if au1_lower in ['g', '克', '公克', 'g/斤']:
+        if au1_lower in ['g', '克', '公克', 'g/斤', '克g', '克左右']:
             au[1] = 'g'
 
         if isinstance(au[0], str):

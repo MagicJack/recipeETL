@@ -112,15 +112,15 @@ class ingredCleaner():
             self._skipC.add(id)
             if bVerb: print(f'{id:>8}, {food}, {qty}')
             return 1
-        if "、" in food:
-            if "少許" in qty:
-                if bVerb: print(f"{id:>8}, {food}, {qty}")
-                self._skipA.add(id)
-                return 2
-            elif "適量" in qty:
-                if bVerb: print(f"{id:>8}, {food}, {qty}")
-                self._skipB.add(id)
-                return 3
+        # if "、" in food:
+        if "少許" in qty:
+            if bVerb: print(f"{id:>8}, {food}, {qty}")
+            self._skipA.add(id)
+            return 2
+        elif "適量" in qty:
+            if bVerb: print(f"{id:>8}, {food}, {qty}")
+            self._skipB.add(id)
+            return 3
         return 0
 
     # Class Method
