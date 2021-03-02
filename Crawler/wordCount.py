@@ -1,7 +1,7 @@
 import re, sys, json
 
 from cleanQty import qtyCleaner
-from clnIngred import ingredCleaner
+from cleanIngred import ingredCleaner
 
 folders = ["低脂","生酮","低醣","沙拉","高蛋白","健身","高纖"]
 
