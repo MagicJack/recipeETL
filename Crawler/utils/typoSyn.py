@@ -1,9 +1,11 @@
 import re
 
+from .txt_loader import *
+
 class ZhcnSynonym():
-    _cnChar = list("仼优兰刴发咸国圣块坚塩头姜嫰岛庄徳择掦无柠榄殻温湿炼猕现瑶盐筛籮类緑红绿苹荀荞葱蓝蔴蕯虾记调辢过选酱针铃铝铺锦门韮须饺马鱼鲍鲜鳯鸡麦黄黒龙⽔")
+    _cnChar = list("仼优兰刴发咸国圣块坚塩头姜嫰岛庄徳择掦无柠榄殻温湿炼猕现瑶盐筛籮类緑红绿苹荀荞葱蓝蔴蕯虾记调辢过选酱针铃铝铺锦门韮须饺马鱼鲍鲜鳯鸡麦黄黒龙蔾⽔")
     # 必需手動修改 '姜'->'薑', '籮'->'蘿', '荀'->'筍', 並加上 '⽔'->'水', 單一個字 convertZ.exe 無整轉換出我們要的繁體字 twChar
-    _twChar = list("任優蘭剁發鹹國聖塊堅鹽頭薑嫩島莊德擇揚無檸欖殼溫濕煉獼現瑤鹽篩蘿類綠紅綠蘋筍蕎蔥藍麻薩蝦記調辣過選醬針鈴鋁鋪錦門韭須餃馬魚鮑鮮鳳雞麥黃黑龍水")
+    _twChar = list("任優蘭剁發鹹國聖塊堅鹽頭薑嫩島莊德擇揚無檸欖殼溫濕煉獼現瑤鹽篩蘿類綠紅綠蘋筍蕎蔥藍麻薩蝦記調辣過選醬針鈴鋁鋪錦門韭須餃馬魚鮑鮮鳳雞麥黃黑龍藜水")
 
     # '干' 不單一字轉, 改用詞
     _cn2twWord = {
@@ -368,6 +370,7 @@ class TypoSyn():
         '黃芥未醬': ['第戎芥末醬 Dijon Mustard', '黃芥末醬 dijon'],
         '頂級初榨橄欖油': ['橄欖油extra virgin', '橄欖油dxtraVirgin', 'ex橄欖油', 'extra virgin橄欖油',
                     'extra virgin olive oil', 'extra olive virgin oil', 'DOP頂級初榨橄油'],
+        '蔓越莓': ['蔓越梅'],
         'OmniPork ':  ['omnipork'],
         'MyProtein ': ['myprotein ', 'myprotein'],
         # '低卡可樂': ['zero', '纖維可樂'],
@@ -412,7 +415,7 @@ class TypoSyn():
         '馬斯卡彭': ['馬斯卡朋', '馬斯卡邦'],
         '凱撒': ['凱薩', '凱薩琳'],
         '鹽': ['塩', '盬', '塩巴', '鹽巴'],
-        '煉乳': ['煉奶', '練奶', '炼奶'],
+        '加糖部份脫脂煉乳': ['煉乳','煉奶', '練奶'],
         '橄欖': ['橄榄', '橄㰖', '橄欄'],
         '薄菏': ['簿荷', '薄盒'],
         '藍莓': ['藍黴'],
@@ -420,7 +423,7 @@ class TypoSyn():
         '荸薺': ['荸齊'],
         '蒟蒻': ['蒟篛'],
         '巴西里': ['巴西利', '巴西裏', '巴西裡'],
-        '蘇打': ['梳打'],
+        '小蘇打': ['蘇打','梳打','小梳打'],
         '花椰菜': ['西蘭花'],
         '香吉士': ['香桔士'],
         '蛤蜊': ['蛤蠣', '蛤利', '蛤仔'],
@@ -453,224 +456,60 @@ class TypoSyn():
 
 class groupSyn():
     # 別名 或 同一類食材
-    Synonym = [
-        "蔘鬚",
-        "黃耆",
-        "熟地",
-        "甘草",
-        "枸杞",
+    Synonym = {
+    }
 
-        "伏特加",
-        "白蘭地",
-        "威士忌",
-        "低卡可樂",
-        "可樂",
-        "汽水",
-       ["優格"],
-        "養樂多",
-        "冰淇淋",
-       ["黃布丁", "布丁"],
-
-        "海鮮",
-        "小卷",
-        "軟絲",
-        "牡蠣",
-        "干貝",
-        "扇貝",
-        "昆布",
-        "明太子",
-        "火鍋料",
-       ["魚翅", "北海翅"],
-       ["鮭魚", "鱒澳鱸"],
-       ["鰻魚", "蒲燒鰻"],
-
-       ["小卷", "小管", "鎖管", "中卷", "透抽"],
-       ["牡蠣", "蚵仔", "生蠔", "蠔"],
-       ["干貝", "瑤柱", "帶子粒"],
-       ["鮮貝", "帶子", "沙插", "騷蛤"],
-       ["扇貝", "凡立貝", "帆立貝"],
-        "漢堡排",
-        "排骨",
-        "叉燒",
-       ["豬肉", "火鍋片"],
-       ["雞胸肉", "金豐盛", "燻雞"],
-        "雞蛋",
-       ["高蛋白", "protein"],
-       ["羊肉", "羊排"],
-        "肉乾",
-
-       ["麵", "雁门清高黑苦荞全麦龙须面"],
-       ["麵包", "漢堡包", "軟法", "餐包", "銀絲卷", "三文治方", "新英格蘭堡", "義美馬芬堡", "馬芬堡", "義美馬芬"],
-        "饅頭",
-
-       ["麵皮", "餛飩皮"],
-       ["春捲皮"],
-       ["塔皮", "派皮"],
-
-       ["乾酪", "帕馬森"],
-       ["乳酪", "起司", "瑞可達", "博康奇尼", "莫札瑞拉", "馬斯卡彭", "布拉塔", "哈瓦蒂"],
-       ["無鹽奶油", "忌廉", "動鮮"],
-       ["鮮奶油"],
-       ["淡奶油"],
-       ["低脂起司", "低脂莫札瑞拉"],
-       ["奶油"],
-       ['酥油', '無水奶油'],
-
-       ["餅乾", "OREO", "洋芋片", "樂事原味波卡", "浪味仙", "奇多"],
-       ["巧克力", "Hersheys", "COCO"],
-
-       ["蔬菜", "綠橡木葉", "時蔬", "冰山綠火焰", "韭黃", "青花苔", "大陸妹", "花椰菜", "過貓"],
-        "綠卷",
-        "豆芽菜",
-        "九層塔",
-        "胡蘿蔔",
-       ["蘿蔓", "蘿美"],
-        "羅望子",
-       ["豆芽菜", "銀芽"],
-       ["九層塔", "蘿勒"],
-       ["胡蘿蔔", "紅蘿絲", "紅蘿蔔", "甘荀"],
-
-       ["香菜", "芫荽"],
-       ["洋香菜", "番荽"],
-
-       ["大番茄", "牛番茄"],
-       ["小番茄", "車厘茄", "聖女番茄", "櫻桃茄"],
-        "蘋果",
-       ["鳳梨", "蘿菠"],
-        "草莓",
-        "梨子",
-        "榴槤",
-        "檸檬",
-        "櫻桃",
-        "波羅蜜",
-        "芒果",
-        "李子",
-        "柚子",
-        "桑葚",
-        "石榴",
-        "奇異果",
-        "酪梨",
-        "栗子",
-        "蔓越梅",
-
-       ["果乾", "蔓越梅乾"],
-       ["梅子", "烏梅", "梅乾"],
-
-        "堅果",
-        "葵花籽",
-        "核桃",
-        "杏仁",
-        "大麻籽",
-        "亞麻籽",
-        "奇亞籽",
-       ["麥片", "穀片"],
-
-       ['小米', '庫斯庫斯'],
-        "玉米",
-        "甘薯",
-        "荸薺",
-        "菱角",
-        "蓮藕",
-        "蓮子",
-        "芋頭",
-        "天貝",
-        "千張",
-        "洋芋",
-       ["蒟蒻絲", "魔芋面", "魔芋麵", "芋絲", "蒟蒻", "寒天"],
-       ["辣木", "青汁"],
-       ["洋芋", "馬鈴薯"],
-       ["白木耳", "銀耳", "雪耳"],
-
-        "鷹嘴豆",
-        "蠶豆",
-
-        "蒔蘿",
-       ["食用花", "花片", "茉莉", "鼠尾草"],
-        "甜菊",
-        "梔子花",
-        "香蜂草", 
-        "斑蘭",
-        "薄菏",
-        "番紅花",
-       ["香莢蘭", "雲呢拿"],
-
-       ["發粉", "泡打粉"],
-        "尾冬骨",
-       ["明膠", "洋菜", "吉利丁", "果凍粉", "膠粉"],
-       ["木耳", "銀耳"],
-        "松茸",
-        "松露",
-        "玉子燒",
-        "紅珊瑚",
-       ["發泡錠","維他命C"],
-        "腐皮",
-
-        "奧勒岡",
-       ["車前子", "洋車前"],
-       ["香料", "葛縷子", "葫蘆巴", "香莢蘭"],
-       ["孜然", "小茴香"],
-        "茴香",
-        "香茅",
-        "紫蘇",
-        "月桂",
-        "八角", 
-        "蒔蘿",
-        "丁香",
-        "卡菲萊姆葉",
-
-        "山葵",
-        "辣根",
-
-       ["美乃滋", "KEPIE"],
-        "莎莎醬",
-
-       ["調味料", "滷汁包", "風味料", "鮮味炒手", "自然鮮", "滷包"],
-       ["高湯塊", "麻辣鍋底"],
-       ["味精", "味素"],
-       ["醋", "巴薩米克醋", "義大利香黑醋"],
-       ["醬料", "老乾媽"],
-       ["醬油", "滷汁"],
-       ["山葵", "綠芥末", "哇沙米"],
-        "蔭豉",
-        "破布子",
-        "龍眼蜜",
-        ]
 
     def __init__(self):
-        self.dict = {}
+        self.std_ingredent = sorted( list(set_loader('./utils/std_ingredent.txt')), key=lambda x:len(x), reverse=True)
+        self.Synonym = dict_loader('./utils/grp_ingredent.txt')
+        tmpDic = {}
         # dicN = {}
-        for item in self.Synonym:
-            if isinstance(item, list):
-                self.dict[item[0]] = item[:]
-                ## Todo: 字串長的先作, 再作短字串
-                # for i in item:
-                #     ilen = str(len(i)).zfill(2)
-                #     if not ilen in dicN:
-                #         dicN[ilen]=[[i,item[0]]]
-                #     else:
-                #         dicN[ilen].append([i,item[0]])
-            else:
-                self.dict[item] = [item]
-        # self.dicN = [dicN[i] for i in keys()]
+        for grpKey, items in self.Synonym.items():
+            if grpKey not in self.std_ingredent:
+                print('{grpkey} does not in file "std_ingredent.txt"')
+            # if isinstance(items, list):
+            #     tmpDic[grpKey] = items
+            # else:
+            #     tmpDic[grpKey] = [grpKey, items]
 
+        self._lookupTbl = {}
+        for grpKey, items  in tmpDic.items():
+            # if '起司' == item:
+            #     print('1')
+            for item in items:
+                self._lookupTbl[item.lower()] = grpKey
+        self._lookupTbl = sorted(self._lookupTbl.items(), key=lambda x:len(x[0]), reverse=True)
 
-    def lookup(self, item, values):
-        for sym in values:
-            if sym == item:
-                return True, False
-            elif sym in item:
-                return True, True
-        else:
-            return False, False
+    def lookup(self, vstr):
+        # ilen = len(vstr)
+        if vstr in self.std_ingredent:
+            return True, vstr
+
+        for item, std in self._lookupTbl:
+            if vstr == item:
+                return True, std
+            elif vstr in item:
+                return True, std
+        return False, vstr
+
+    # def lookup(self, item, values):
+    #     for sym in values:
+    #         if sym == item:
+    #             return True, False
+    #         elif sym in item:
+    #             return True, True
+    #     else:
+    #         return False, False
     
-    def lookups(self, item, item_norm):
-        for key, values in self.dict.items():
-            bFind, bAppend = self.lookup(item_norm, values)
-            if bFind:
-                if bAppend or item_norm != item:
-                    self.dict[key].append(item)
-                # if item_norm != item:
-                #     print('1')
-                break
-        else:
-            print('NG', item)
+    # def lookups(self, item, item_norm):
+    #     for key, values in self._lookup.items():
+    #         bFind, bAppend = self.lookup(item_norm, values)
+    #         if bFind:
+    #             if bAppend or item_norm != item:
+    #                 self.dict[key].append(item)
+    #             # if item_norm != item:
+    #             #     print('1')
+    #             break
+    #     else:
+    #         print('NG', item)

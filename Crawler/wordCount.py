@@ -2,6 +2,9 @@ import re, sys, json
 
 from utils.cleanQty    import qtyCleaner
 from utils.cleanIngred import ingredCleaner
+from utils.txt_loader  import set_loader
+from utils.typoSyn     import groupSyn
+
 
 folders = ["低脂","生酮","低醣","沙拉","高蛋白","健身","高纖"]
 
@@ -13,22 +16,12 @@ foodFreq = {}
 nClean = int(sys.argv[1])  if len(sys.argv) > 1 else 4
 bVerb  = bool(sys.argv[2]) if len(sys.argv) > 2 else False
 
-def load_ID(path):
-    ID_file = path
-    ID_dict = set()
-    try:
-        with open(ID_file, "r", encoding='utf-8') as f:
-            for line in f:
-                ID_dict.add(line.replace('\n', ''))
-    except:
-        print('No excluding list loaded.')
-    return ID_dict
-
-ignore_IDs = load_ID('ID_exclude.txt')
+ignore_IDs = set_loader('ID_exclude.txt')
 skip_IDs = set()
 
 iCleaner = ingredCleaner()
 qCleaner = qtyCleaner()
+grpSynom = groupSyn()
 
 def procIngrdent(food_ID, ingreds, bVerb=bVerb, nClean=nClean):
     global foodList, foodFreq, cntTotal
@@ -39,7 +32,8 @@ def procIngrdent(food_ID, ingreds, bVerb=bVerb, nClean=nClean):
         if nClean:
             nfood = iCleaner.clean(food_ID, food, bVerb=bVerb, nClean=nClean)
             qty_unit = qCleaner.clean(food_ID, qty, bVerb=bVerb)
-            print(f'{food_ID:>8}: {nfood:20}, {qty_unit}')
+            # print(f'{food_ID:>8}: {nfood:20}, {qty_unit}')
+            x = grpSynom.lookup(nfood)
         else:
             qty_unit = qty
             nfood    = food
