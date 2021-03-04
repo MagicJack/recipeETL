@@ -1,9 +1,12 @@
-import re, sys, json
+import sys, json
 
+# import utils
 from utils.cleanQty    import qtyCleaner
 from utils.cleanIngred import ingredCleaner
 from utils.txt_loader  import set_loader
 from utils.typoSyn     import groupSyn
+
+from utils.nutriCalcer import nutriCalcer
 
 
 folders = ["低脂","生酮","低醣","沙拉","高蛋白","健身","高纖"]
@@ -17,6 +20,7 @@ nClean = int(sys.argv[1])  if len(sys.argv) > 1 else 4
 bVerb  = bool(sys.argv[2]) if len(sys.argv) > 2 else False
 
 ignore_IDs = set_loader('ID_exclude.txt')
+nCalcer  = nutriCalcer()
 skip_IDs = set()
 
 iCleaner = ingredCleaner()
@@ -27,14 +31,30 @@ def procIngrdent(food_ID, ingreds, bVerb=bVerb, nClean=nClean):
     global foodList, foodFreq, cntTotal
     global iCleaner
 
-    x = {}     # to avoid change ingreds in for-loop
+    ingTbl = {}     # to avoid change ingreds in for-loop
+    nutris = {}
     for food, qty in ingreds.items():  # 抓出"食譜"中的所有 key 和 值
-        if nClean:
+        bAllOK = True
+        if nClean > 0:
             nfood = iCleaner.clean(food_ID, food, bVerb=bVerb, nClean=nClean)
             qty_unit = qCleaner.clean(food_ID, qty, bVerb=bVerb)
             # print(f'{food_ID:>8}: {nfood:20}, {qty_unit}')
-            x = grpSynom.lookup(nfood)
+            # if food_ID == '276239':
+            #     print('1')
+            bFound, ingred = grpSynom.lookup(nfood)
+            if bFound and isinstance(qty_unit, list):
+                # if ingred == '胡蘿蔔':
+                #     print('1')
+                if qty_unit[1] == 'g' or qty_unit[1] == 'ml':
+                    nutris[ingred] = qty_unit
+                else:
+                    bAllOK = False
+                    print(f'{food_ID:>8} {nfood}: {qty_unit[1]} != "g" or "ml".')
+            else:
+                bAllOK = False
+                print(f'{food_ID:>8} {nfood} not in standard ingredent group.')
         else:
+            bAllOK = False
             qty_unit = qty
             nfood    = food
 
@@ -49,11 +69,29 @@ def procIngrdent(food_ID, ingreds, bVerb=bVerb, nClean=nClean):
             foodFreq[nfood] = 1
         foodList.append(nfood)
         #print(food) # 所有食材
-        x[nfood] = qty_unit
-    return x
+        ingTbl[nfood] = qty_unit
+
+    return bAllOK, ingTbl, nutris
 
 xf1 = open('./clr-Long.txt', 'w', encoding='utf-8')
 xf2 = open('./clr-Short.txt', 'w', encoding='utf-8')
+
+
+## method1
+# fd = open('./ok-nutris.csv', 'wb')
+# fd.write(codecs.BOM_UTF8)
+# xf3 = csv.writer(fd, delimiter=',', quotechar='"')
+# xf3.writerow(dataList)
+
+## method2
+# xf3 = open('./ok-nutris.csv', 'w', encoding='utf-8')
+# xf3.write(u'\uFEFF')
+# xf3.write(string+'\n')
+
+
+xf3 = open('./ok-nutris.csv', 'w', encoding='utf-8')
+xf3.write(u'\uFEFF')
+xf3.write(f'food_ID,菜名,份數,{nCalcer._headers[3]},每份{",".join(nCalcer._headers[3:])}\n')
 for i in folders:
     with open(f'{i}/{i}.txt', 'r', encoding='utf-8') as f:
         for line in f:              # 使用迴圈方式一條一條抓
@@ -65,12 +103,25 @@ for i in folders:
                 data['推讚數'] = qCleaner.parseNumber(data['推讚數'])
                 data['瀏覽數'] = qCleaner.parseNumber(data['瀏覽數'])
                 data['份數']   = qCleaner.parseNumber(data['份數'])
-                data['食譜']   = procIngrdent(food_ID, data['食譜'], bVerb=bVerb, nClean=nClean)
+                bflag, data['食譜'], nutri = procIngrdent(food_ID, data['食譜'], bVerb=bVerb, nClean=nClean)
+                if bflag:
+                    result = list(nCalcer.calc(nutri))
+                    total  = result[0]
+                    result = [str(v/data['份數']) for v in result]
+                    food_Name = data["菜名"].replace('\n', '').strip()
+                    if '"' in food_Name:
+                        food_Name = food_Name.replace('"', '""')
+                        food_Name = f'"{food_Name}"'
+                    if ',' in food_Name:
+                        # food_Name = food_Name.replace(',', '\\,')
+                        food_Name = f'"""{food_Name}"""'
+                    xf3.write(f'{food_ID},{food_Name},{data["份數"]},{total},{",".join(result)}\n')
                 cntProcs += 1
                 xf1.write(json.dumps(data, ensure_ascii=False)+'\n')
                 xf2.write(json.dumps({'id':food_ID, 'ingredents':data['食譜']}, ensure_ascii=False)+'\n')
 xf1.close()
 xf2.close()
+# xf3.close()
 
 skipA, skipB, skipC = iCleaner.getSkip()
 print(f"少許:{len(skipA)}\nList:{skipA}\n\n適量:{len(skipB)}\nList:{skipB}\n\n空白:{len(skipC)}\nList:{skipC}\n")

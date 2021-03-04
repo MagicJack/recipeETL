@@ -349,7 +349,7 @@ class TypoSyn():
                 "黑醋balsamic", "balsamic醬", "紅酒醋(balsamic)", "balsamico(紅酒醋)",
                 "義大利甜醋balsamicvinegar", 'balsamic vinegar'],
         '巴薩米克': ["巴薩米克(balsamico)", "巴沙米可", "巴沙米克", "巴沙米哥", "巴塞米",
-                "巴撒米可", "巴撒米克", "巴薩米可", "巴薩米克", "巴薩米"],
+                "巴撒米可", "巴撒米克", "巴薩米可", "巴薩米克"],
         '香芹': ['香草 parsley', '香草 parsley', '歐芹', '歐芹parsley', '香芹parsley', '香菜parsley'],
         '莫札瑞拉':['馬扎瑞拉', '馬自瑞拉', '馬芝瑞拉', '馬茲瑞拉', '馬茲摩拉', '馬茲羅拉', '馬蘇里拉',
                 '莫扎瑞拉', '莫左瑞拉', '莫札瑞拉', '莫札雷拉', '莫拉瑞拉', '莫茲瑞拉', '莫薩里拉',
@@ -459,26 +459,25 @@ class groupSyn():
     Synonym = {
     }
 
-
     def __init__(self):
         self.std_ingredent = sorted( list(set_loader('./utils/std_ingredent.txt')), key=lambda x:len(x), reverse=True)
         self.Synonym = dict_loader('./utils/grp_ingredent.txt')
         tmpDic = {}
         # dicN = {}
-        for grpKey, items in self.Synonym.items():
-            if grpKey not in self.std_ingredent:
-                print('{grpkey} does not in file "std_ingredent.txt"')
-            # if isinstance(items, list):
-            #     tmpDic[grpKey] = items
-            # else:
-            #     tmpDic[grpKey] = [grpKey, items]
+        for stdKey, items in self.Synonym.items():
+            if stdKey not in self.std_ingredent:
+                print('{stdKey} does not in file "std_ingredent.txt"')
+            else:
+                tmpDic[stdKey] = items
 
         self._lookupTbl = {}
-        for grpKey, items  in tmpDic.items():
+        for stdKey, items  in tmpDic.items():
             # if '起司' == item:
             #     print('1')
             for item in items:
-                self._lookupTbl[item.lower()] = grpKey
+                if item in self._lookupTbl.items():
+                    print(f'{item} duplicated in 2 or more ingredent groups. "{stdKey}" and others')
+                self._lookupTbl[item.lower()] = stdKey
         self._lookupTbl = sorted(self._lookupTbl.items(), key=lambda x:len(x[0]), reverse=True)
 
     def lookup(self, vstr):
@@ -486,11 +485,12 @@ class groupSyn():
         if vstr in self.std_ingredent:
             return True, vstr
 
-        for item, std in self._lookupTbl:
+        for item, stdKey in self._lookupTbl:
             if vstr == item:
-                return True, std
-            elif vstr in item:
-                return True, std
+                return True, stdKey
+        for item, stdKey in self._lookupTbl:
+            if vstr in item:
+                return False, stdKey
         return False, vstr
 
     # def lookup(self, item, values):

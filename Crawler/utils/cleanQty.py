@@ -110,6 +110,7 @@ class qtyCleaner:
 
     _rgx1 = re.compile(r'((?:[0-9]+\+)?[0-9]+[/.~\-+]?[0-9]*)\s*')
     def _splitUnit(self, qstr):
+        # nonlocal id
         au = self._rgx1.split(qstr)
         # au = re.split(r'((?:[0-9]+\+)?[0-9]+[/.~\-]?[0-9]*) *', qstr)
         if len(au) == 3:
@@ -171,11 +172,6 @@ class qtyCleaner:
         # else:
         #     return au
 
-        # elif au[1] in ['磅']:
-        #     if not isinstance(au[0], str):
-        #         return [au[0]*453.6, 'g']
-        #     else:
-        #         return au
         # if au[1] != 'g' and au[1] != 'ml' and len(au[1]) > 2:
         #     print('1')
         return au
@@ -197,7 +193,7 @@ class qtyCleaner:
         if '分之' in qtyStr:
             qtyStr = re.sub(r'([0-9]+)分之([0-9]+) *', r'\2/\1', qtyStr)
 
-        # if qtyStr == '1+1粒':
+        # if id =='262188':
         #     print('1')
         try:
             qty_unit = self._replaceUnit(self._splitUnit(qtyStr))

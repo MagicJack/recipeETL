@@ -1,4 +1,5 @@
-import json
+import json, csv
+import numpy as np
 
 def set_loader(path):
     '''
@@ -38,4 +39,25 @@ def dict_loader(path):
     for key, value in tmpDic.items():
         keyDict[key] = list(set(value))
     return keyDict
+
+
+def dict_csvloader(path):
+    '''
+    Load lines in text file as a dict(). 
+    '''
+    keyDict = dict()
+    with open(path, newline='', encoding='utf-8-sig') as csvfile:
+        reader = csv.DictReader(csvfile)
+        headers = list(next(reader, None).keys())
+        # if headers[0][0] == u'\ufeff':
+        #     headers[0] = headers[0][1:]
+        for row in reader:
+            data = tuple(row.values())
+            if data[2]=='':
+                break
+            vstr = np.array(data[3:])
+            vstr[vstr==''] = '0'
+            keyDict[data[2]] = vstr.astype(np.float32)
+
+    return keyDict, headers
 
