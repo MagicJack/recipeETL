@@ -42,14 +42,19 @@ def procIngrdent(food_ID, ingreds, bVerb=bVerb, nClean=nClean):
             # if food_ID == '276239':
             #     print('1')
             bFound, ingred = grpSynom.lookup(nfood)
-            if bFound and isinstance(qty_unit, list):
-                # if ingred == '胡蘿蔔':
-                #     print('1')
-                if qty_unit[1] == 'g' or qty_unit[1] == 'ml':
-                    nutris[ingred] = qty_unit
+            if bFound:
+                if isinstance(qty_unit, list):
+                    # if ingred == '胡蘿蔔':
+                    #     print('1')
+                    if qty_unit[1] == 'g' or qty_unit[1] == 'ml':
+                        nutris[ingred] = qty_unit
+                    else:
+                        bAllOK = False
+                        print(f'{food_ID:>8} {nfood}: {qty_unit[1]} != "g" or "ml".')
                 else:
                     bAllOK = False
-                    print(f'{food_ID:>8} {nfood}: {qty_unit[1]} != "g" or "ml".')
+                    if qty_unit != '適量' and qty_unit != '少許':
+                        print(f'{food_ID:>8} {nfood}: {qty_unit} not split.')
             else:
                 bAllOK = False
                 print(f'{food_ID:>8} {nfood} not in standard ingredent group.')

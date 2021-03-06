@@ -103,6 +103,7 @@ class ingredCleaner():
     _skipA = set()
     _skipB = set()
     _skipC = set()
+    _skipA_list = ["胡椒", "黑椒", "鹽", "蔥", "雞粉", "水"]
     def checkSkip(self, id, food, qty, bVerb=False):
         # if '小烤箱椰奶用量' in food:
         #     print(f'{id:>8}, {food}, {qty}')

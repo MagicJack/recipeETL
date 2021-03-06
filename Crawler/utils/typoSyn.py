@@ -371,6 +371,7 @@ class TypoSyn():
         '頂級初榨橄欖油': ['橄欖油extra virgin', '橄欖油dxtraVirgin', 'ex橄欖油', 'extra virgin橄欖油',
                     'extra virgin olive oil', 'extra olive virgin oil', 'DOP頂級初榨橄油'],
         '蔓越莓': ['蔓越梅'],
+        '七味粉': ['七味唐辛子', '七味唐辛粉', '七味唐辛子粉', '辣味七味粉', '辣椒粉或七味粉', '乾辣椒/七味粉'],
         'OmniPork ':  ['omnipork'],
         'MyProtein ': ['myprotein ', 'myprotein'],
         # '低卡可樂': ['zero', '纖維可樂'],
@@ -382,6 +383,8 @@ class TypoSyn():
         '雞蛋': ['g蛋'],
         '春捲': ['春卷'],
         '綠捲': ['綠卷'],
+        '味醂': ['味霖', '味琳'],
+        '胡椒': ['楜椒'],
         '蘿蔓': ['羅曼', '蘿曼'], 
         '蘿美': ['羅美', '美蘿心'],
         '芫荽': ['芫茜', '鹽須'],
@@ -472,10 +475,10 @@ class groupSyn():
 
         self._lookupTbl = {}
         for stdKey, items  in tmpDic.items():
-            # if '起司' == item:
-            #     print('1')
             for item in items:
-                if item in self._lookupTbl.items():
+                # if '雞胸肉' == item:
+                #     print('1')
+                if item in self._lookupTbl.keys():
                     print(f'{item} duplicated in 2 or more ingredent groups. "{stdKey}" and others')
                 self._lookupTbl[item.lower()] = stdKey
         self._lookupTbl = sorted(self._lookupTbl.items(), key=lambda x:len(x[0]), reverse=True)
