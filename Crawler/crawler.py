@@ -96,8 +96,19 @@ def crawlOne(ID, recipeName, recipesUrl):
     recipesReq = requests.get(recipesUrl, headers = recipesHeaders)
     recipesSoup = BeautifulSoup(recipesReq.text, 'html.parser')
 
-    ranking = recipesSoup.select('span.stat-content')[0].text #推讚數
+    check_page = recipesSoup.select('h1')[0]
+    if check_page.text.strip()[:11] == "唉啊! 這個頁面不見了":
+        print(f'{ID:>8}: 唉啊! 這個頁面不見了')
+        return ''
+
     try:
+        postdate = recipesSoup.select('time.recipe-detail-meta-item')[0].attrs['datetime'] #貼文日期
+        food_Info["貼文日期"] = postdate
+    except Exception as e:
+        food_Info["貼文日期"] = None
+
+    try:
+        ranking = recipesSoup.select('span.stat-content')[0].text #推讚數
         food_Info["推讚數"] = ranking.split(' ')[0]
     except Exception as e:
         #print(f'推讚數 error: {e}')
@@ -157,7 +168,9 @@ def crawlOne(ID, recipeName, recipesUrl):
     return json.dumps(food_Info, ensure_ascii= False)
 
 
-def checkRecrawl(food):
+exclist = load_ID("ID_exclude.txt")
+
+def checkRecrawl(food, bFlags=(False, False)):
     file1 = f'./{food}/{food}.txt'
     file2 = f'./{food}/{food}.org'
     if os.path.exists(file2):
@@ -167,22 +180,29 @@ def checkRecrawl(food):
     with open(file1, 'w', encoding='utf-8') as fd1:
         for line in fd2:
             data = json.loads(line)
-            if len(data['食譜']) == 0 or len(data['步驟']) == 0:
+            bFlag1 = bFlags[0] and (len(data['食譜']) == 0 or len(data['步驟']) == 0)
+            bFlag2 = bFlags[1] and ('貼文日期' not in data.keys())
+
+            if bFlag1 or bFlag2:
                 ID = data['food_ID']
-                recipesUrl = data['url']
-                recipeName = data['菜名']
-                line = crawlOne(ID, recipeName, recipesUrl)+'\n'
+
+                if ID not in exclist:
+                    recipesUrl = data['url']
+                    recipeName = data['菜名']
+                    nline = crawlOne(ID, recipeName, recipesUrl)
+                    if nline != '':
+                        line = nline+'\n'
                 # sleep(random.uniform(1, 3))
             fd1.write(line)
     fd2.close()
     os.remove(file2)
     save_total_json(food) # 將暫存的每筆到 txt內容，整理成一包大 json 格式檔案
 
-def recipes(food, bCheck=False):
+def recipes(food, bCheck=False, bDate=False):
     keyword = food
 
-    if bCheck:
-        checkRecrawl(food)
+    if bCheck or bDate:
+        checkRecrawl(food, (bCheck, bDate))
         return
 
     try:
@@ -257,9 +277,10 @@ def recipes(food, bCheck=False):
 keyword = ["低脂", "生酮", "低醣", "沙拉", "高蛋白", "健身", "高纖"]  # 輸入查詢關鍵字 list
 
 bCheck = bool(sys.argv[1])  if len(sys.argv) > 1 else False
+bDate  = bool(sys.argv[2])  if len(sys.argv) > 2 else False
 
 for k in keyword:
-    recipes(k, bCheck)
+    recipes(k, bCheck, bDate)
     print(f"{k}: 已全部完成")
     print("==================================="*3)
 
