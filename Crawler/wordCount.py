@@ -1,4 +1,4 @@
-import sys, json
+import sys, json, csv
 
 # import utils
 from utils.cleanQty    import qtyCleaner
@@ -83,8 +83,7 @@ xf2 = open('./clr-Short.txt', 'w', encoding='utf-8')
 
 
 ## method1
-# fd = open('./ok-nutris.csv', 'wb')
-# fd.write(codecs.BOM_UTF8)
+# fd = open('./ok-nutris.csv', 'w', encoding='utf-8-sig')
 # xf3 = csv.writer(fd, delimiter=',', quotechar='"')
 # xf3.writerow(dataList)
 
@@ -94,9 +93,11 @@ xf2 = open('./clr-Short.txt', 'w', encoding='utf-8')
 # xf3.write(string+'\n')
 
 
-xf3 = open('./ok-nutris.csv', 'w', encoding='utf-8')
-xf3.write(u'\uFEFF')
-xf3.write(f'food_ID,菜名,份數,{nCalcer._headers[3]},每份{",".join(nCalcer._headers[3:])}\n')
+xf3fd = open('./ok-nutris.csv', 'w', newline='', encoding='utf-8-sig')
+hdrs = ['food_ID','菜名','group','份數',nCalcer._headers[3],'每份'+nCalcer._headers[3]]
+hdrs.extend(nCalcer._headers[4:])
+xf3 = csv.writer(xf3fd, delimiter=',', quotechar='"')
+xf3.writerow(hdrs)
 for i in folders:
     with open(f'{i}/{i}.txt', 'r', encoding='utf-8') as f:
         for line in f:              # 使用迴圈方式一條一條抓
@@ -105,6 +106,7 @@ for i in folders:
             cntTotal += 1
             food_ID = data['food_ID']
             if food_ID not in ignore_IDs:
+                data['group'] = i
                 data['推讚數'] = qCleaner.parseNumber(data['推讚數'])
                 data['瀏覽數'] = qCleaner.parseNumber(data['瀏覽數'])
                 data['份數']   = qCleaner.parseNumber(data['份數'])
@@ -114,16 +116,18 @@ for i in folders:
                     total  = result[0]
                     result = [str(v/data['份數']) for v in result]
                     food_Name = data["菜名"].replace('\n', '').strip()
-                    if '"' in food_Name:
-                        food_Name = food_Name.replace('"', '""')
-                        food_Name = f'"{food_Name}"'
-                    if ',' in food_Name:
-                        # food_Name = food_Name.replace(',', '\\,')
-                        food_Name = f'"""{food_Name}"""'
-                    xf3.write(f'{food_ID},{food_Name},{data["份數"]},{total},{",".join(result)}\n')
+                    # if '"' in food_Name:
+                    #     food_Name = food_Name.replace('"', '""')
+                    #     food_Name = f'"{food_Name}"'
+                    # if ',' in food_Name:
+                    #     # food_Name = food_Name.replace(',', '\\,')
+                    #     food_Name = f'"""{food_Name}"""'
+                    data3 = [food_ID,food_Name,i,data["份數"],total]
+                    data3.extend(result)
+                    xf3.writerow(data3)
                 cntProcs += 1
                 xf1.write(json.dumps(data, ensure_ascii=False)+'\n')
-                xf2.write(json.dumps({'id':food_ID, 'ingredents':data['食譜']}, ensure_ascii=False)+'\n')
+                xf2.write(json.dumps({'id':food_ID, 'group':i, 'ingredents':data['食譜']}, ensure_ascii=False)+'\n')
 xf1.close()
 xf2.close()
 # xf3.close()
