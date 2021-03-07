@@ -19,7 +19,7 @@ class ingredCleaner():
     # _rgx3b = re.compile(r'^(.) {1,3}(.)$')
     # _rgx3c = re.compile(r'^([.\]、]|[1-9]：)')
     _rgx3d = re.compile(r'^[1-9]([^號吋層塊砂\x00-\xff].*)')
-    _rgx3e = re.compile(r'^(蘇打粉)')
+    _rgx3e = re.compile(r'^(小?蘇打粉?)$')
     _rgx4 = re.compile(r'(.+[：︰～]|[a-j1-9][.:\-])\s*(.+)', re.I)
     _rgx5 = re.compile(r'(.+)\s*\(.*')
     _rgx6 = re.compile(r'.+\)\s*(.+)')
@@ -66,7 +66,10 @@ class ingredCleaner():
             # vstr = self._rgx3c.sub('', vstr)
             vstr = self._rgx3d.sub(r'\1', vstr)
             # 蘇打粉 --> 小蘇打粉
-            vstr = self._rgx3e.sub(r'小\1', vstr)
+            if '蘇打' in vstr:
+                # if id == '119465':
+                #     print('1')
+                vstr = self._rgx3e.sub(r'小蘇打粉', vstr)
 
             mat = _doRegex(self._rgx4, vstr, bVerb)
             if mat: return mat.group(2)
