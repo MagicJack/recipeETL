@@ -94,7 +94,7 @@ xf2 = open('./clr-Short.txt', 'w', encoding='utf-8')
 
 
 xf3fd = open('./ok-nutris.csv', 'w', newline='', encoding='utf-8-sig')
-hdrs = ['food_ID','菜名','group','份數',nCalcer._headers[3],'每份'+nCalcer._headers[3]]
+hdrs = ['food_ID','菜名','group', 'ranking','份數',nCalcer._headers[3],'每份'+nCalcer._headers[3]]
 hdrs.extend(nCalcer._headers[4:])
 xf3 = csv.writer(xf3fd, delimiter=',', quotechar='"')
 xf3.writerow(hdrs)
@@ -109,6 +109,10 @@ for i in folders:
                 data['group'] = i
                 data['推讚數'] = qCleaner.parseNumber(data['推讚數'])
                 data['瀏覽數'] = qCleaner.parseNumber(data['瀏覽數'])
+                if data['瀏覽數'] != 0:
+                    ranking = data['推讚數']/data['瀏覽數'] * 100
+                else:
+                    ranking = 0
                 data['份數']   = qCleaner.parseNumber(data['份數'])
                 bflag, data['食譜'], nutri = procIngrdent(food_ID, data['食譜'], bVerb=bVerb, nClean=nClean)
                 if bflag:
@@ -122,7 +126,7 @@ for i in folders:
                     # if ',' in food_Name:
                     #     # food_Name = food_Name.replace(',', '\\,')
                     #     food_Name = f'"""{food_Name}"""'
-                    data3 = [food_ID,food_Name,i,data["份數"],total]
+                    data3 = [food_ID,food_Name,i,ranking,data["份數"],total]
                     data3.extend(result)
                     xf3.writerow(data3)
                 cntProcs += 1
